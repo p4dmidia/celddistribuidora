@@ -37,6 +37,20 @@ serve(async (req) => {
 
         const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!)
 
+        // 0. Obter token do Melhor Envio para a organização, se disponível
+        let tokenToUse = MELHOR_ENVIO_TOKEN;
+        if (organization_id) {
+            const { data: org } = await supabase
+                .from('organizations')
+                .select('melhorenvio_token')
+                .eq('id', organization_id)
+                .maybeSingle();
+            
+            if (org?.melhorenvio_token) {
+                tokenToUse = org.melhorenvio_token;
+            }
+        }
+
         // 1. Buscar detalhes dos produtos com categorias
         const productIds = items.map((item: any) => item.id)
         const { data: products, error: productsError } = await supabase
@@ -138,7 +152,7 @@ serve(async (req) => {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${MELHOR_ENVIO_TOKEN}`,
+                    'Authorization': `Bearer ${tokenToUse}`,
                     'User-Agent': 'ClasseA Integration (agenciap4d@gmail.com)'
                 },
                 body: JSON.stringify({

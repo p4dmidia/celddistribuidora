@@ -212,7 +212,7 @@ const AffiliateDashboard: React.FC = () => {
     };
 
     const handleSupportWhatsApp = () => {
-        window.open('https://api.whatsapp.com/send/?phone=5541996285667&text=Ol%C3%A1%2C+preciso+de+suporte+CELD%2C+pode+me+ajudar%3F&type=phone_number&app_absent=0', '_blank');
+        window.open('https://api.whatsapp.com/send/?phone=5593992272032&text=Ol%C3%A1%2C+preciso+de+suporte+CELD%2C+pode+me+ajudar%3F&type=phone_number&app_absent=0', '_blank');
     };
 
     // Calcular data de vencimento e status de ativação

@@ -328,13 +328,13 @@ const HomePage: React.FC = () => {
                   <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-emerald-400">
                     <Mail className="w-5 h-5" />
                   </div>
-                  <span className="text-sm font-semibold font-inter">suporte@celddistribuidora.com.br</span>
+                  <span className="text-sm font-semibold font-inter">celd.distribuidora@gmail.com</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-emerald-400">
                     <Phone className="w-5 h-5" />
                   </div>
-                  <span className="text-sm font-semibold font-inter">(41) 99628-5667</span>
+                  <span className="text-sm font-semibold font-inter">(93) 99227-2032</span>
                 </div>
               </div>
             </div>
@@ -350,7 +350,7 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
               <a 
-                href="https://api.whatsapp.com/send/?phone=5541996285667&text=Ol%C3%A1%2C+preciso+de+suporte+CELD%2C+pode+me+ajudar%3F&type=phone_number&app_absent=0"
+                href="https://api.whatsapp.com/send/?phone=5593992272032&text=Ol%C3%A1%2C+preciso+de+suporte+CELD%2C+pode+me+ajudar%3F&type=phone_number&app_absent=0"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all uppercase tracking-widest text-xs"

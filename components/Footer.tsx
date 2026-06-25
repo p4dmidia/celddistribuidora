@@ -53,11 +53,11 @@ const Footer: React.FC = () => {
             <ul className="space-y-4 text-sm text-slate-500">
               <li className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-emerald-500" />
-                suporte@celddistribuidora.com.br
+                celd.distribuidora@gmail.com
               </li>
               <li className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-emerald-500 shrink-0" />
-                Curitiba - PR
+                Oriximiná -Pá
               </li>
             </ul>
             
@@ -71,7 +71,7 @@ const Footer: React.FC = () => {
                   Dúvidas sobre o sistema ou a entrega? Nossa equipe está pronta para te atender.
                 </p>
                 <a 
-                  href="https://api.whatsapp.com/send/?phone=5541996285667&text=Ol%C3%A1%2C+preciso+de+suporte+CELD%2C+pode+me+ajudar%3F&type=phone_number&app_absent=0"
+                  href="https://api.whatsapp.com/send/?phone=5593992272032&text=Ol%C3%A1%2C+preciso+de+suporte+CELD%2C+pode+me+ajudar%3F&type=phone_number&app_absent=0"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block w-full bg-white text-emerald-600 text-center py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all shadow-sm"

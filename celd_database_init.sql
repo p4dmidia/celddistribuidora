@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS public.organizations (
     domain text,
     mercadopago_access_token text,
     mercadopago_public_key text,
+    melhorenvio_token text,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now()
 );
@@ -819,9 +820,19 @@ CREATE POLICY "Admin_Full_Security_Logs" ON public.security_logs FOR ALL TO auth
 -- ============================================================================
 
 -- A. Inserir Organização Principal CELD Distribuidora
-INSERT INTO public.organizations (id, name, domain) 
-VALUES ('c01d919a-ce1d-4de5-b81d-c01d919ad151', 'CELD Distribuidora', 'celddistribuidora.com.br')
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.organizations (id, name, domain, mercadopago_public_key, mercadopago_access_token, melhorenvio_token) 
+VALUES (
+  'c01d919a-ce1d-4de5-b81d-c01d919ad151', 
+  'CELD Distribuidora', 
+  'celddistribuidora.com.br',
+  'APP_USR-1ddcdb99-ee85-4c0c-9bdd-6a8a8b1eca5b',
+  'APP_USR-1338613094034860-062514-34b00e8a49b19a621de5e694acd2f3de-3496916467',
+  'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiZDBhZDM1MjUxNmZiYWIyMmY1MDM2NjUxMzVjYTc1MTI4MzI0NTNmNzQxNDVkNjY5NDBlNDNmMWQ2ZDJjOWRlNTg5ODQzN2E0MmJjNTQxMzIiLCJpYXQiOjE3ODIzMjMzNzkuNTY3NTU5LCJuYmYiOjE3ODIzMjMzNzkuNTY3NTUxLCJleHAiOjE4MTM4NTkzNzkuNTQ4Njc0LCJzdWIiOiJhMjE5ZWVkMC0wNjdkLTQyNDMtYmU5ZS03YjUxZmM3NzNlNjYiLCJzY29wZXMiOltdfQ.i6U_eViWEWYfJuCut9GFof2BHwWJLW6opA4W3fy0LHFmrNYNFqDSWKzIY5J0nG1BKp8uI6kO5IUTNPbUOdM-NRDxLiRivTPY7Fsd-BuIDa5nto8gFEaUrYAnfTReoPDNqW1-ubjlxx6JBnzSrYMtMYDPRvdQHGuLxZp9ISswssOsgZwn3itGGSiabtdA0_tH4zy24JPE7_3vSGUxZ-RkkluA9Qr-gbQCYalmtpaGsd8t0MqNg5pPLKZm_RvDGX6-DbTxS5tbXkQCnm4Mpu9EPFL69Dg22TqHDtEk4nsI5WsMy29SQE8ADxNLvRPqgKWDazk5dr8RVNwnZqCds8h9tuAQ1uTXIvDV7Qs0UCPrzNxxqdR7uiwMUCT4fV3NYrs63c_7mRPQw2mrCmRxm7VZ73urkByM3vMJnd-nDmA4hgtRzq64-0m9gUTu2FTmJk-vUQivzuKsJQO0DU8VkOCykieW26jiV9aha8M6ERyw-LRY5I07wWAiLI-9pL5fjx_diVFYMX3QFW_5R4k2qXOYA6zV4ZH2LGKWOUvKW1DjJvjQTQE6UjENuUGBx8RHynw70N1JPeS8efZcTiIT0StMxHrDa1mQhe0Y30BMt4dQdP02Bi9Vx7dW7qgaZFuLLPq7HOpZ69SU4KGIpWjnuPUyRrhYm676YXSyzJeGBuvf54M'
+)
+ON CONFLICT (id) DO UPDATE SET
+  mercadopago_public_key = EXCLUDED.mercadopago_public_key,
+  mercadopago_access_token = EXCLUDED.mercadopago_access_token,
+  melhorenvio_token = EXCLUDED.melhorenvio_token;
 
 -- B. Inserir Configurações de Comissionamento MMN Unilevel (G1=10%, G2=5%, G3=4%, G4-G9=3%, G10=3.05%)
 INSERT INTO public.commission_configs (key, type, active_generations, levels, organization_id)
