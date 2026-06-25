@@ -16,14 +16,6 @@ serve(async (req) => {
     }
 
     try {
-        if (!MELHOR_ENVIO_TOKEN) {
-            console.error('ERRO: MELHOR_ENVIO_TOKEN não configurado nas variáveis de ambiente.');
-            return new Response(
-                JSON.stringify({ error: 'Configuração do servidor incompleta (Token de API ausente)' }),
-                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-            )
-        }
-
         const body = await req.json().catch(() => ({}));
         const { zip, items, organization_id } = body;
 
@@ -49,6 +41,14 @@ serve(async (req) => {
             if (org?.melhorenvio_token) {
                 tokenToUse = org.melhorenvio_token;
             }
+        }
+
+        if (!tokenToUse) {
+            console.error('ERRO: Token do Melhor Envio não configurado (nem no Deno.env nem na organização).');
+            return new Response(
+                JSON.stringify({ error: 'Configuração do servidor incompleta (Token de API ausente)' }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+            )
         }
 
         // 1. Buscar detalhes dos produtos com categorias
