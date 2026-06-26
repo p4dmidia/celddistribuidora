@@ -182,7 +182,7 @@ const RegisterPage: React.FC = () => {
                                     whatsapp: formData.whatsapp,
                                     organization_id: ORGANIZATION_ID,
                                     sponsor_id: sponsorId,
-                                    is_active: true,
+                                    is_active: false,
                                     is_verified: true
                                 });
                                 
@@ -199,7 +199,7 @@ const RegisterPage: React.FC = () => {
                                         whatsapp: formData.whatsapp,
                                         organization_id: ORGANIZATION_ID,
                                         sponsor_id: sponsorId,
-                                        is_active: true,
+                                        is_active: false,
                                         is_verified: true
                                     });
                                 }

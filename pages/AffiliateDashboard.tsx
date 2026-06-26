@@ -60,7 +60,7 @@ const AffiliateDashboard: React.FC = () => {
                     full_name: profile?.full_name || 'Novo Afiliado',
                     referral_code: `${login}_${randomSuffix}`.toLowerCase(),
                     organization_id: ORGANIZATION_ID,
-                    is_active: true,
+                    is_active: false,
                     is_verified: true
                 });
 
