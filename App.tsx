@@ -110,7 +110,45 @@ const App: React.FC = () => {
     <Router>
       <CartProvider>
         <AuthProvider>
-          <Toaster position="top-right" reverseOrder={false} />
+          <Toaster 
+            position="top-right" 
+            reverseOrder={false}
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#1e293b', // slate-800
+                color: '#ffffff',
+                padding: '12px 18px',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                maxWidth: '400px',
+                wordBreak: 'break-word',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+              },
+              success: {
+                style: {
+                  background: '#064e3b', // dark green
+                  border: '1px solid rgba(16, 185, 129, 0.2)',
+                },
+                iconTheme: {
+                  primary: '#10b981', // emerald-500
+                  secondary: '#ffffff',
+                },
+              },
+              error: {
+                style: {
+                  background: '#7f1d1d', // dark red
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                },
+                iconTheme: {
+                  primary: '#ef4444', // red-500
+                  secondary: '#ffffff',
+                },
+              },
+            }}
+          />
           <AppContent />
         </AuthProvider>
       </CartProvider>

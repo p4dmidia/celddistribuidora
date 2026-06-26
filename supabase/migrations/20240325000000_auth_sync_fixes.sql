@@ -42,7 +42,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 3. Function to delete user entirely (Clean up)
-CREATE OR REPLACE FUNCTION public.admin_delete_user(target_user_id uuid)
+CREATE OR REPLACE FUNCTION public.admin_delete_user(p_user_id uuid)
 RETURNS void AS $$
 DECLARE
     v_admin_org_id uuid;
@@ -54,23 +54,23 @@ BEGIN
     END IF;
 
     -- Safeguard: Ensure target belongs to same org
-    IF NOT EXISTS (SELECT 1 FROM public.user_profiles WHERE id = target_user_id AND organization_id = v_admin_org_id) THEN
+    IF NOT EXISTS (SELECT 1 FROM public.user_profiles WHERE id = p_user_id AND organization_id = v_admin_org_id) THEN
         RAISE EXCEPTION 'Você só pode excluir usuários da sua própria organização.';
     END IF;
     
     -- Safeguard: Do not allow deleting admins via this RPC
-    IF EXISTS (SELECT 1 FROM public.user_profiles WHERE id = target_user_id AND role = 'admin') THEN
+    IF EXISTS (SELECT 1 FROM public.user_profiles WHERE id = p_user_id AND role = 'admin') THEN
         RAISE EXCEPTION 'Não é permitido excluir administradores pelo painel.';
     END IF;
 
     -- Cleanup public tables explicitly to avoid constraint issues
-    DELETE FROM public.commissions WHERE user_id = target_user_id;
-    DELETE FROM public.user_settings WHERE user_id = target_user_id;
-    DELETE FROM public.affiliates WHERE user_id = target_user_id;
-    DELETE FROM public.user_profiles WHERE id = target_user_id;
+    DELETE FROM public.commissions WHERE user_id = p_user_id;
+    DELETE FROM public.user_settings WHERE user_id = p_user_id;
+    DELETE FROM public.affiliates WHERE user_id = p_user_id;
+    DELETE FROM public.user_profiles WHERE id = p_user_id;
 
     -- Finally delete from auth.users (This is the most critical part)
-    DELETE FROM auth.users WHERE id = target_user_id;
+    DELETE FROM auth.users WHERE id = p_user_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -89,6 +89,6 @@ CREATE POLICY "Admins can delete any profile" ON public.user_profiles
 
 GRANT EXECUTE ON FUNCTION public.admin_update_user_email(uuid, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_update_user_metadata(uuid, jsonb) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.admin_update_user_delete(uuid) TO authenticated; -- Alias or fix name
 CREATE OR REPLACE FUNCTION public.admin_update_user_delete(target_user_id uuid) RETURNS void AS $$ BEGIN PERFORM public.admin_delete_user(target_user_id); END; $$ LANGUAGE plpgsql;
+GRANT EXECUTE ON FUNCTION public.admin_update_user_delete(uuid) TO authenticated; -- Alias or fix name
 GRANT EXECUTE ON FUNCTION public.admin_delete_user(uuid) TO authenticated;
