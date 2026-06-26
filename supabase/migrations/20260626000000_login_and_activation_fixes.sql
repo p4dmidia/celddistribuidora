@@ -72,12 +72,22 @@ CREATE OR REPLACE FUNCTION public.handle_new_affiliate_user()
    END IF;
 
    -- E. Criar Perfil do Usuário
-   INSERT INTO public.user_profiles (id, email, role, cpf, cnpj, registration_type, organization_id, sponsor_id, created_at, updated_at)
-   VALUES (new.id, new.email, COALESCE(new.raw_user_meta_data ->> 'role', 'affiliate'), new.raw_user_meta_data ->> 'cpf', new.raw_user_meta_data ->> 'cnpj', new.raw_user_meta_data ->> 'registration_type', v_org_id, v_sponsor_id, new.created_at, new.created_at);
+   BEGIN
+     INSERT INTO public.user_profiles (id, email, role, cpf, cnpj, registration_type, organization_id, sponsor_id, created_at, updated_at)
+     VALUES (new.id, new.email, COALESCE(new.raw_user_meta_data ->> 'role', 'affiliate'), new.raw_user_meta_data ->> 'cpf', new.raw_user_meta_data ->> 'cnpj', new.raw_user_meta_data ->> 'registration_type', v_org_id, v_sponsor_id, new.created_at, new.created_at);
+   EXCEPTION WHEN OTHERS THEN
+     GET STACKED DIAGNOSTICS v_error_msg = MESSAGE_TEXT;
+     RAISE EXCEPTION 'Erro ao criar perfil CELD: %', v_error_msg;
+   END;
 
    -- F. Criar Registro de Afiliado (is_active = false)
-   INSERT INTO public.affiliates (user_id, email, full_name, referral_code, cpf, cnpj, whatsapp, organization_id, sponsor_id, is_active, created_at, updated_at)
-   VALUES (new.id, new.email, v_full_name, new.raw_user_meta_data ->> 'login', new.raw_user_meta_data ->> 'cpf', new.raw_user_meta_data ->> 'cnpj', new.raw_user_meta_data ->> 'whatsapp', v_org_id, v_sponsor_id, false, new.created_at, new.updated_at);
+   BEGIN
+     INSERT INTO public.affiliates (user_id, email, full_name, referral_code, cpf, cnpj, whatsapp, organization_id, sponsor_id, is_active, created_at, updated_at)
+     VALUES (new.id, new.email, v_full_name, new.raw_user_meta_data ->> 'login', new.raw_user_meta_data ->> 'cpf', new.raw_user_meta_data ->> 'cnpj', new.raw_user_meta_data ->> 'whatsapp', v_org_id, v_sponsor_id, false, new.created_at, new.updated_at);
+   EXCEPTION WHEN OTHERS THEN
+     GET STACKED DIAGNOSTICS v_error_msg = MESSAGE_TEXT;
+     RAISE EXCEPTION 'Erro ao criar afiliado CELD: %', v_error_msg;
+   END;
 
    -- G. Criar Configurações Iniciais
    BEGIN
