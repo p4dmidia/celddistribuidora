@@ -81,9 +81,9 @@ serve(async (req) => {
                 categoryName = Array.isArray(catData) ? (catData[0]?.name || '') : ((catData as any).name || '')
             }
             
-            // Verificação de Frete Fixo (ISOLADO PARA CLASSE A)
+            // Verificação de Frete Fixo (ISOLADO PARA CLASSE A e CELD)
             let fixedRate = 0
-            const isClasseA = organization_id === '5111af72-27a5-41fd-8ed9-8c51b78b4fdd'
+            const isClasseA = organization_id === '5111af72-27a5-41fd-8ed9-8c51b78b4fdd' || organization_id === 'c01d919a-ce1d-4de5-b81d-c01d919ad151'
             
             const normalizedCat = categoryName.toLowerCase()
             const normalizedName = productName.toLowerCase()
