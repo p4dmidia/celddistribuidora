@@ -905,6 +905,7 @@ const AdminProducts: React.FC = () => {
                                                 <option value="01104-001">01104-001 (São Paulo - Roupas Fem.)</option>
                                                 <option value="04303-001">04303-001 (São Paulo - São Judas)</option>
                                                 <option value="38445-072">38445-072 (Araguari - MG)</option>
+                                                <option value="68270-000">68270-000 (Oriximiná - PA)</option>
                                             </select>
                                         </div>
                                     </div>
