@@ -11,7 +11,9 @@ import {
     FileText,
     ArrowRight,
     ChevronLeft,
-    Loader2
+    Loader2,
+    MapPin,
+    ShoppingBag
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
@@ -27,6 +29,7 @@ const CheckoutPage: React.FC = () => {
     const { user } = useAuth();
     const [acceptedConsorcio, setAcceptedConsorcio] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'credit' | 'pix'>('credit');
+    const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup'>('delivery');
     const [isLoading, setIsLoading] = useState(false);
     const [pixData, setPixData] = useState<any>(null);
     const [customerInfo, setCustomerInfo] = useState({
@@ -139,10 +142,15 @@ const CheckoutPage: React.FC = () => {
     const isShippingRequired = !isConsorcioOnly;
     const isAddressRequired = true; // Sempre pedir endereço para fins de cadastro
     const subtotal = cartTotal;
-    const shipping = isConsorcioOnly ? 0 : (selectedShipping ? parseFloat(selectedShipping.price) : 0);
+    const shipping = isConsorcioOnly || deliveryMethod === 'pickup' ? 0 : (selectedShipping ? parseFloat(selectedShipping.price) : 0);
     const total = subtotal + shipping;
 
     const calculateShipping = async () => {
+        if (deliveryMethod === 'pickup') {
+            toast.success('Retirada no local possui frete isento!');
+            return;
+        }
+
         if (!isShippingRequired) {
             toast.success('Produtos digitais possuem frete isento!');
             return;
@@ -215,14 +223,16 @@ const CheckoutPage: React.FC = () => {
         }
 
         // Full address validation
-        if (!customerInfo.cep || !customerInfo.street || !customerInfo.number || !customerInfo.neighborhood || !customerInfo.city || !customerInfo.state) {
-            toast.error('Por favor, preencha o endereço completo.');
-            return;
-        }
+        if (deliveryMethod === 'delivery') {
+            if (!customerInfo.cep || !customerInfo.street || !customerInfo.number || !customerInfo.neighborhood || !customerInfo.city || !customerInfo.state) {
+                toast.error('Por favor, preencha o endereço completo.');
+                return;
+            }
 
-        if (isShippingRequired && !selectedShipping) {
-            toast.error('Por favor, selecione uma opção de frete.');
-            return;
+            if (isShippingRequired && !selectedShipping) {
+                toast.error('Por favor, selecione uma opção de frete.');
+                return;
+            }
         }
 
         const isConsorcioInCart = cart.some(item => item.category === 'Consórcio' || item.name.includes('CONSÓRCIO'));
@@ -238,7 +248,9 @@ const CheckoutPage: React.FC = () => {
             const orderId = `ORD-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
             const referralCode = Cookies.get('celd_ref') || Cookies.get('classea_ref');
             
-                const fullAddressString = `${customerInfo.street}, ${customerInfo.number} ${customerInfo.complement ? `(${customerInfo.complement})` : ''} - ${customerInfo.neighborhood}, ${customerInfo.city} - ${customerInfo.state} (CEP: ${customerInfo.cep})`;
+                const fullAddressString = deliveryMethod === 'pickup'
+                    ? 'Retirada no Local'
+                    : `${customerInfo.street}, ${customerInfo.number} ${customerInfo.complement ? `(${customerInfo.complement})` : ''} - ${customerInfo.neighborhood}, ${customerInfo.city} - ${customerInfo.state} (CEP: ${customerInfo.cep})`;
 
                 const { error: orderError } = await supabase
                     .from('orders')
@@ -254,7 +266,9 @@ const CheckoutPage: React.FC = () => {
                         shipping_address: fullAddressString,
                         total_amount: total,
                         shipping_cost: shipping,
-                        shipping_method: selectedShipping?.name || (isConsorcioOnly ? 'Isento - Digital' : 'Não informado'),
+                        shipping_method: deliveryMethod === 'pickup' 
+                            ? 'Retirada no Local' 
+                            : (selectedShipping?.name || (isConsorcioOnly ? 'Isento - Digital' : 'Não informado')),
                         status: 'Pendente',
                         payment_method: paymentMethod === 'credit' ? 'Cartão de Crédito' : 'Pix'
                     }]);
@@ -263,21 +277,26 @@ const CheckoutPage: React.FC = () => {
 
                 // 1.5 Update user profile if logged in
                 if (user) {
+                    const profileUpdate: any = {
+                        full_name: customerInfo.name,
+                        whatsapp: customerInfo.phone,
+                        cpf: customerInfo.cpf
+                    };
+
+                    if (deliveryMethod === 'delivery' && customerInfo.cep) {
+                        profileUpdate.cep = customerInfo.cep;
+                        profileUpdate.street = customerInfo.street;
+                        profileUpdate.number = customerInfo.number;
+                        profileUpdate.complement = customerInfo.complement;
+                        profileUpdate.neighborhood = customerInfo.neighborhood;
+                        profileUpdate.city = customerInfo.city;
+                        profileUpdate.state = customerInfo.state;
+                        profileUpdate.address = `${customerInfo.street}, ${customerInfo.number}`;
+                    }
+
                     await supabase
                         .from('user_profiles')
-                        .update({
-                            full_name: customerInfo.name,
-                            whatsapp: customerInfo.phone,
-                            cpf: customerInfo.cpf,
-                            cep: customerInfo.cep,
-                            street: customerInfo.street,
-                            number: customerInfo.number,
-                            complement: customerInfo.complement,
-                            neighborhood: customerInfo.neighborhood,
-                            city: customerInfo.city,
-                            state: customerInfo.state,
-                            address: `${customerInfo.street}, ${customerInfo.number}`
-                        })
+                        .update(profileUpdate)
                         .eq('id', user.id);
                 }
 
@@ -467,6 +486,26 @@ const CheckoutPage: React.FC = () => {
                                 )}
                             </div>
 
+                            {/* Método de Envio / Retirada */}
+                            <div className="grid grid-cols-2 gap-4 mb-8">
+                                <button
+                                    type="button"
+                                    onClick={() => setDeliveryMethod('delivery')}
+                                    className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${deliveryMethod === 'delivery' ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-100 hover:border-slate-200'}`}
+                                >
+                                    <Truck className={`w-8 h-8 ${deliveryMethod === 'delivery' ? 'text-emerald-500' : 'text-slate-300'}`} />
+                                    <span className="text-xs font-black uppercase tracking-widest">Receber em Casa</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setDeliveryMethod('pickup')}
+                                    className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${deliveryMethod === 'pickup' ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-100 hover:border-slate-200'}`}
+                                >
+                                    <ShoppingBag className={`w-8 h-8 ${deliveryMethod === 'pickup' ? 'text-emerald-500' : 'text-slate-300'}`} />
+                                    <span className="text-xs font-black uppercase tracking-widest">Retirar no Local</span>
+                                </button>
+                            </div>
+
                             {user && !isEditingProfile ? (
                                 <div className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 space-y-4">
                                     <div className="flex items-center gap-4">
@@ -487,20 +526,30 @@ const CheckoutPage: React.FC = () => {
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Contato</p>
                                             <p className="text-sm font-bold text-[#0B1221]">{customerInfo.phone || customerInfo.email}</p>
                                         </div>
-                                        <div className="bg-white p-4 rounded-2xl border border-slate-100/50 md:col-span-2">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Endereço de Entrega</p>
-                                                    {customerInfo.street}, {customerInfo.number} {customerInfo.complement && `(${customerInfo.complement})`} <br/>
-                                                    {customerInfo.neighborhood} - {customerInfo.city}/{customerInfo.state} <br/>
-                                                    CEP: {customerInfo.cep}
-                                        </div>
+                                        {deliveryMethod === 'delivery' ? (
+                                            <div className="bg-white p-4 rounded-2xl border border-slate-100/50 md:col-span-2">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Endereço de Entrega</p>
+                                                        {customerInfo.street}, {customerInfo.number} {customerInfo.complement && `(${customerInfo.complement})`} <br/>
+                                                        {customerInfo.neighborhood} - {customerInfo.city}/{customerInfo.state} <br/>
+                                                        CEP: {customerInfo.cep}
+                                            </div>
+                                        ) : (
+                                            <div className="bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/10 md:col-span-2 flex items-center gap-3">
+                                                <MapPin className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                                                <div>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Modalidade de Entrega</p>
+                                                    <p className="text-sm font-bold text-[#0B1221]">Retirada no Local (Frete Isento)</p>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                    {!customerInfo.cep && (
+                                    {deliveryMethod === 'delivery' && !customerInfo.cep && (
                                         <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest">
                                             <AlertCircle className="w-4 h-4" />
                                             Complete seu CEP para calcular o frete
                                         </div>
                                     )}
-                                    {isShippingRequired && customerInfo.cep && !selectedShipping && (
+                                    {deliveryMethod === 'delivery' && isShippingRequired && customerInfo.cep && !selectedShipping && (
                                         <div className="pt-2">
                                             <button
                                                 type="button"
@@ -556,7 +605,7 @@ const CheckoutPage: React.FC = () => {
                                         />
                                     </div>
                                     {/* Sempre mostrar endereço, mas frete só se necessário */}
-                                    {true && (
+                                    {deliveryMethod === 'delivery' ? (
                                         <>
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">CEP</label>
@@ -645,11 +694,31 @@ const CheckoutPage: React.FC = () => {
                                                 </div>
                                             </div>
                                         </>
+                                    ) : (
+                                        <div className="md:col-span-2 bg-emerald-50/30 rounded-3xl p-6 border-2 border-emerald-500/20 space-y-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white">
+                                                    <MapPin className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-black uppercase tracking-widest text-[#0B1221]">Retirada no Local</p>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Distribuidora Oficial</p>
+                                                </div>
+                                            </div>
+                                            <p className="text-xs font-semibold text-slate-600 leading-relaxed">
+                                                Seu pedido estará pronto para retirada em nossa distribuidora assim que o pagamento for aprovado. 
+                                                Apresente o número do pedido ou o CPF cadastrado no balcão de atendimento.
+                                            </p>
+                                            <div className="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-2">
+                                                <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                                <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Frete Isento</span>
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
                             )}
 
-                            {shippingOptions.length > 0 && (
+                            {deliveryMethod === 'delivery' && shippingOptions.length > 0 && (
                                 <div className="mt-8 pt-8 border-t border-slate-100 space-y-4">
                                     <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Selecione a Entrega</label>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -709,7 +778,11 @@ const CheckoutPage: React.FC = () => {
                                 </div>
                                 <div className="flex justify-between text-slate-400 text-sm font-medium">
                                     <span>Entrega</span>
-                                    <span>R$ {shipping.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                    <span>
+                                        {deliveryMethod === 'pickup' || isConsorcioOnly || shipping === 0 
+                                            ? 'Isento' 
+                                            : `R$ ${shipping.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between items-center pt-4 border-t border-white/10">
                                     <span className="font-black">TOTAL</span>
